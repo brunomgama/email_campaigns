@@ -309,18 +309,34 @@ export function EditAudienceModal({
                   <Label htmlFor="local">
                     Local <span className="text-red-500">*</span>
                   </Label>
-                  <Select
-                    value={formData.local}
-                    onValueChange={(value) => handleInputChange('local', value)}
-                  >
-                    <SelectTrigger className={`w-full ${errors.local ? "border-red-500" : ""}`}>
-                      <SelectValue placeholder="Select local" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FR">French (FR)</SelectItem>
-                      <SelectItem value="NL">Dutch (NL)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-3">
+                    <Select
+                      value={formData.local}
+                      onValueChange={(value) => handleInputChange('local', value)}
+                    >
+                      <SelectTrigger className={`flex-1 ${errors.local ? "border-red-500" : ""}`}>
+                        <SelectValue placeholder="Select local" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FR">🇫🇷 French (FR)</SelectItem>
+                        <SelectItem value="NL">🇳🇱 Dutch (NL)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Visual Local Indicator */}
+                    <div className="flex items-center">
+                      {formData.local && (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
+                          <span className="text-lg">
+                            {formData.local === 'FR' ? '🇫🇷' : formData.local === 'NL' ? '🇳🇱' : ''}
+                          </span>
+                          <span className="text-sm font-medium text-blue-700">
+                            {formData.local === 'FR' ? 'French' : formData.local === 'NL' ? 'Dutch' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   {errors.local && <p className="text-sm text-red-500">{errors.local}</p>}
                 </div>
 
@@ -426,18 +442,35 @@ export function EditAudienceModal({
                 {/* Active */}
                 <div className="space-y-2">
                   <Label htmlFor="active">Status</Label>
-                  <Select
-                    value={formData.active ? "active" : "inactive"}
-                    onValueChange={(value) => handleInputChange('active', value === "active")}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-3">
+                    <Select
+                      value={formData.active ? "active" : "inactive"}
+                      onValueChange={(value) => handleInputChange('active', value === "active")}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Visual Status Indicator */}
+                    <div className="flex items-center">
+                      {formData.active ? (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm font-medium text-green-700">Live</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                          <span className="text-sm font-medium text-gray-600">Inactive</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </form>
             </div>

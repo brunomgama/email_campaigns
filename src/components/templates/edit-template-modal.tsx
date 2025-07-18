@@ -228,9 +228,9 @@ export function EditTemplateModal({ isOpen, onCloseAction, onTemplateUpdatedActi
       />
       
       {/* Modal */}
-      <div className="relative z-50 w-full max-w-4xl max-h-[90vh] mx-4 bg-background rounded-lg shadow-lg overflow-hidden">
+      <div className="relative z-50 w-full max-w-4xl max-h-[90vh] mx-4 bg-background rounded-lg shadow-lg overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b">
+        <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
           <div>
             <h2 className="text-xl font-semibold">Edit Template</h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -248,7 +248,7 @@ export function EditTemplateModal({ isOpen, onCloseAction, onTemplateUpdatedActi
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+        <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -282,8 +282,8 @@ export function EditTemplateModal({ isOpen, onCloseAction, onTemplateUpdatedActi
                       <SelectValue placeholder="Select local (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="FR">French (FR)</SelectItem>
-                      <SelectItem value="NL">Dutch (NL)</SelectItem>
+                      <SelectItem value="FR">🇫🇷 French (FR)</SelectItem>
+                      <SelectItem value="NL">🇳🇱 Dutch (NL)</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.local && <p className="text-sm text-red-500">{errors.local}</p>}
@@ -438,7 +438,7 @@ export function EditTemplateModal({ isOpen, onCloseAction, onTemplateUpdatedActi
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t bg-muted/50">
+        <div className="flex items-center justify-end gap-3 p-6 border-t bg-muted/50 flex-shrink-0">
           <Button
             variant="outline"
             onClick={onCloseAction}

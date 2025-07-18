@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  IconDotsVertical,
   IconEdit,
   IconPlus,
   IconTrash,
@@ -25,13 +24,6 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Table,
   TableBody,
   TableCell,
@@ -47,6 +39,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { AddCampaignModal } from "./add-campaign-modal"
 import { EditCampaignModal } from "./edit-campaign-modal"
 import { campaignsApi, type Campaign } from "@/lib/campaigns-api"
@@ -227,18 +225,30 @@ export function CampaignsTable() {
     }
   }
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return 'secondary'
-      case 'planned':
-        return 'default'
-      case 'sent':
-        return 'default'
-      case 'archived':
-        return 'outline'
+  // Get flag emoji for local
+  const getLocalFlag = (local: string) => {
+    switch (local.toUpperCase()) {
+      case 'FR':
+        return '🇫🇷'
+      case 'NL':
+        return '🇳🇱'
       default:
-        return 'secondary'
+        return local
+    }
+  }
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'draft':
+        return 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+      case 'planned':
+        return 'bg-sky-100 hover:bg-sky-200 text-sky-700 border-sky-200'
+      case 'sent':
+        return 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700 border-emerald-200'
+      case 'archived':
+        return 'bg-amber-100 hover:bg-amber-200 text-amber-700 border-amber-200'
+      default:
+        return 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
     }
   }
 
@@ -250,10 +260,17 @@ export function CampaignsTable() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <IconSend className="h-4 w-4 text-muted-foreground" />
-          <div>
-            <div className="font-medium">{row.getValue("name") || "Untitled"}</div>
-            <div className="text-sm text-muted-foreground">{row.original.local}</div>
-          </div>
+          <div className="font-medium">{row.getValue("name") || "Untitled"}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "local",
+      header: "Local",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{getLocalFlag(row.getValue("local"))}</span>
+          <span className="text-sm font-medium">{row.getValue("local")}</span>
         </div>
       ),
     },
@@ -272,65 +289,78 @@ export function CampaignsTable() {
       cell: ({ row }) => {
         const status = row.getValue("status") as string
         return (
-          <Badge variant={getStatusBadgeVariant(status)}>
-            {status}
+          <Badge variant="default" className={getStatusBadgeVariant(status)}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         )
       },
     },
     {
-      accessorKey: "createDate",
-      header: "Created",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("createDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
-      accessorKey: "modifyDate",
-      header: "Modified",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("modifyDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
       id: "actions",
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const campaign = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <IconDotsVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleSend(campaign)}>
-                <IconSend className="mr-2 h-4 w-4" />
-                Send
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEdit(campaign)}>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDuplicate(campaign.id)}>
-                <IconCopy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(campaign.id)}
-                className="text-destructive"
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2 justify-end">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSend(campaign)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconSend className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Send campaign</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(campaign)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit campaign</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDuplicate(campaign.id)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconCopy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Duplicate campaign</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(campaign.id)}
+                    className="h-8 px-2 text-destructive hover:text-white hover:bg-destructive"
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete campaign</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )
       },
     },

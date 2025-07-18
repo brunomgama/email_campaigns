@@ -51,6 +51,7 @@ import { Label } from "@/components/ui/label"
 import { AddTemplateModal } from "./add-template-modal"
 import { EditTemplateModal } from "./edit-template-modal"
 import { templatesApi, type Template } from "@/lib/templates-api"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function TemplatesTable() {
   const [data, setData] = React.useState<Template[]>([])
@@ -238,29 +239,42 @@ export function TemplatesTable() {
     }
   }
 
+  // Get flag emoji for local
+  const getLocalFlag = (local: string) => {
+    switch (local.toUpperCase()) {
+      case 'FR':
+        return '🇫🇷'
+      case 'NL':
+        return '🇳🇱'
+      default:
+        return local
+    }
+  }
+
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'published':
-        return 'default'
+        return 'bg-sky-100 hover:bg-sky-200 text-sky-700 border-sky-200'
       case 'draft':
-        return 'secondary'
+        return 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
       case 'archived':
-        return 'outline'
+        return 'bg-amber-100 hover:bg-amber-200 text-amber-700 border-amber-200'
       default:
-        return 'secondary'
+        return 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
     }
   }
 
   const getEmailTypeBadgeVariant = (emailType: string) => {
-    switch (emailType) {
+    const normalizedType = emailType.toLowerCase()
+    switch (normalizedType) {
       case 'campaign':
-        return 'default'
-      case 'automation':
-        return 'secondary'
+        return "bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200"
       case 'functional':
-        return 'outline'
+        return "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+      case 'automation':
+        return "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200"
       default:
-        return 'secondary'
+        return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200"
     }
   }
 
@@ -280,7 +294,10 @@ export function TemplatesTable() {
       accessorKey: "local",
       header: "Local",
       cell: ({ row }) => (
-        <div className="text-sm">{row.getValue("local") || "-"}</div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{getLocalFlag(row.getValue("local"))}</span>
+          <span className="text-sm font-medium">{row.getValue("local") || "-"}</span>
+        </div>
       ),
     },
     {
@@ -289,8 +306,8 @@ export function TemplatesTable() {
       cell: ({ row }) => {
         const emailType = row.getValue("emailType") as string
         return emailType ? (
-          <Badge variant={getEmailTypeBadgeVariant(emailType)}>
-            {emailType}
+          <Badge variant="outline" className={`text-xs ${getEmailTypeBadgeVariant(emailType)}`}>
+            {emailType.charAt(0).toUpperCase() + emailType.slice(1)}
           </Badge>
         ) : (
           <span className="text-muted-foreground">-</span>
@@ -303,64 +320,78 @@ export function TemplatesTable() {
       cell: ({ row }) => {
         const status = row.getValue("status") as string
         return (
-          <Badge variant={getStatusBadgeVariant(status)}>
-            {status}
+          <Badge variant="default" className={getStatusBadgeVariant(status)}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </Badge>
         )
       },
     },
     {
-      accessorKey: "createDate",
-      header: "Created",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("createDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
-      accessorKey: "modifyDate",
-      header: "Modified",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("modifyDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
       id: "actions",
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const template = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <IconDotsVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(template)}>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDuplicate(template.id)}>
-                <IconCopy className="mr-2 h-4 w-4" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleArchive(template.id)}>
-                <IconArchive className="mr-2 h-4 w-4" />
-                Archive
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(template.id)}
-                className="text-destructive"
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2 justify-end">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(template)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit template</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDuplicate(template.id)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconCopy className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Duplicate template</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleArchive(template.id)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconArchive className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Archive template</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(template.id)}
+                    className="h-8 px-2 text-destructive hover:text-white hover:bg-destructive"
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete template</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )
       },
     },

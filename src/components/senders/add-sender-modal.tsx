@@ -284,11 +284,11 @@ export function AddSenderModal({ isOpen, onCloseAction, onSenderAddedAction }: A
                     <SelectValue placeholder="Select email type" />
                   </SelectTrigger>
                   <SelectContent>
-                  {EMAIL_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
+                    {EMAIL_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
                         {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </SelectItem>
-                  ))}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Button
@@ -303,18 +303,38 @@ export function AddSenderModal({ isOpen, onCloseAction, onSenderAddedAction }: A
               </div>
               {formData.emailType.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {formData.emailType.map((type, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {type}
-                      <button
-                        type="button"
-                        onClick={() => removeEmailType(type)}
-                        className="ml-1 hover:text-destructive"
+                  {formData.emailType.map((type, index) => {
+                    const getTypeColor = (emailType: string) => {
+                      const normalizedType = emailType.toLowerCase()
+                      switch (normalizedType) {
+                        case 'campaign':
+                          return "bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200"
+                        case 'functional':
+                          return "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+                        case 'automation':
+                          return "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200"
+                        default:
+                          return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200"
+                      }
+                    }
+                    
+                    return (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className={`text-xs ${getTypeColor(type)}`}
                       >
-                        <IconX className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                        <button
+                          type="button"
+                          onClick={() => removeEmailType(type)}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <IconX className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    )
+                  })}
                 </div>
               )}
               {errors.emailType && (
@@ -325,20 +345,37 @@ export function AddSenderModal({ isOpen, onCloseAction, onSenderAddedAction }: A
             {/* Status Field */}
             <div className="space-y-2">
               <Label className="text-sm font-medium">Status</Label>
-              <Select
-                value={formData.active ? "active" : "inactive"}
-                onValueChange={(value) =>
-                  setFormData(prev => ({ ...prev, active: value === "active" }))
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-3">
+                <Select
+                  value={formData.active ? "active" : "inactive"}
+                  onValueChange={(value) =>
+                    setFormData(prev => ({ ...prev, active: value === "active" }))
+                  }
+                >
+                  <SelectTrigger className="flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Visual Status Indicator */}
+                <div className="flex items-center">
+                  {formData.active ? (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-md">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-green-700">Live</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      <span className="text-sm font-medium text-gray-600">Inactive</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Action Buttons */}

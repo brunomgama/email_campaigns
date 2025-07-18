@@ -4,10 +4,10 @@ import * as React from "react"
 import {
   IconCircleCheck,
   IconCircleX,
-  IconDotsVertical,
   IconEdit,
   IconPlus,
   IconTrash,
+  IconArchive,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -52,6 +52,7 @@ import { Label } from "@/components/ui/label"
 import { AddSenderModal } from "./add-sender-modal"
 import { EditSenderModal } from "@/components/senders/edit-sender-modal"
 import { sendersApi, type Sender } from "@/lib/senders-api"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function SendersTable() {
   const [data, setData] = React.useState<Sender[]>([])
@@ -168,6 +169,32 @@ export function SendersTable() {
     }
   }
 
+  // Handle archive/unarchive sender - toggle active status
+  const handleArchive = async (senderId: string) => {
+    try {
+      // Get the current sender data first
+      const sender = await sendersApi.getOne(senderId)
+      
+      // Toggle the active status
+      const newActiveStatus = !sender.active
+      
+      // Update with all required fields, toggling active status
+      await sendersApi.update(senderId, {
+        email: sender.email,
+        alias: sender.alias,
+        emailType: sender.emailType,
+        active: newActiveStatus,
+        user: sender.modifyUser // Use existing user or current user
+      })
+      
+      toast.success(newActiveStatus ? "Sender restored successfully!" : "Sender archived successfully!")
+      handleSenderAdded() // Refresh the table
+    } catch (err) {
+      console.error("Error toggling sender status:", err)
+      toast.error(err instanceof Error ? err.message : "Failed to update sender status")
+    }
+  }
+
   // Handle when a sender is updated
   const handleSenderUpdated = () => {
     // Refresh current page
@@ -250,11 +277,30 @@ export function SendersTable() {
       header: "Email Types",
       cell: ({ row }) => {
         const emailTypes = row.getValue("emailType") as string[]
+        
+        const getTypeColor = (type: string) => {
+          const normalizedType = type.toLowerCase()
+          switch (normalizedType) {
+            case 'campaign':
+              return "bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200"
+            case 'functional':
+              return "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+            case 'automation':
+              return "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200"
+            default:
+              return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200"
+          }
+        }
+        
         return (
           <div className="flex flex-wrap gap-1">
             {emailTypes && emailTypes.length > 0 ? (
               emailTypes.slice(0, 2).map((type, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className={`text-xs ${getTypeColor(type)}`}
+                >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </Badge>
               ))
@@ -262,7 +308,7 @@ export function SendersTable() {
               <span className="text-muted-foreground text-sm">No types</span>
             )}
             {emailTypes && emailTypes.length > 2 && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs bg-gray-100 text-gray-800 border-gray-200">
                 +{emailTypes.length - 2}
               </Badge>
             )}
@@ -296,48 +342,59 @@ export function SendersTable() {
       },
     },
     {
-      accessorKey: "createUser",
-      header: "Created By",
-      cell: ({ row }) => (
-        <div className="text-sm">{row.getValue("createUser")}</div>
-      ),
-    },
-    {
-      accessorKey: "createDate",
-      header: "Created",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("createDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
       id: "actions",
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const sender = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <IconDotsVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(sender)}>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(sender.id)}
-                className="text-destructive"
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2 justify-end">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(sender)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit sender</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleArchive(sender.id)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconArchive className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {sender.active ? "Archive sender" : "Restore sender"}
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(sender.id)}
+                    className="h-8 px-2 text-destructive hover:text-white hover:bg-destructive"
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete sender</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )
       },
     },

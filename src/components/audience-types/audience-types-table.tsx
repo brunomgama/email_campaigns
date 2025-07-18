@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  IconDotsVertical,
   IconEdit,
   IconPlus,
   IconTrash,
@@ -21,18 +20,14 @@ import {
 } from "@tanstack/react-table"
 import { toast } from "sonner"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import {
-  Table,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { Table,
   TableBody,
   TableCell,
   TableHead,
@@ -222,63 +217,43 @@ export function AudienceTypesTable() {
       ),
     },
     {
-      accessorKey: "createUser",
-      header: "Created By",
-      cell: ({ row }) => (
-        <div className="text-sm">{row.getValue("createUser")}</div>
-      ),
-    },
-    {
-      accessorKey: "createDate",
-      header: "Created",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("createDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
-      accessorKey: "modifyUser",
-      header: "Modified By",
-      cell: ({ row }) => (
-        <div className="text-sm">{row.getValue("modifyUser")}</div>
-      ),
-    },
-    {
-      accessorKey: "modifyDate",
-      header: "Modified",
-      cell: ({ row }) => {
-        const date = new Date(row.getValue("modifyDate"))
-        return <div className="text-sm">{date.toLocaleDateString()}</div>
-      },
-    },
-    {
       id: "actions",
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const audienceType = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <IconDotsVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(audienceType)}>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(audienceType.id)}
-                className="text-destructive"
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center justify-end gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(audienceType)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit audience type</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(audienceType.id)}
+                    className="h-8 px-2 text-destructive hover:text-white hover:bg-destructive"
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete audience type</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )
       },
     },
@@ -321,14 +296,7 @@ export function AudienceTypesTable() {
   return (
     <>
       <div className="w-full space-y-4">
-        {/* <div className="flex items-center justify-between">
-          <Input
-            placeholder="Search audience types..."
-            value={searchInput}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            className="max-w-sm"
-          /> */}
-          <div className="flex justify-end">
+        <div className="flex justify-end">
           <Button onClick={() => setIsModalOpen(true)}>
             <IconPlus className="mr-2 h-4 w-4" />
             Add Audience Type

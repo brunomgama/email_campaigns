@@ -295,18 +295,34 @@ export function EditCampaignModal({ isOpen, onCloseAction, onCampaignUpdatedActi
 
                 <div className="space-y-2">
                   <Label htmlFor="local">Local</Label>
-                  <Select
-                    value={formData.local}
-                    onValueChange={(value) => handleInputChange('local', value)}
-                  >
-                    <SelectTrigger className={`w-full ${errors.local ? "border-red-500" : ""}`}>
-                      <SelectValue placeholder="Select local (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="FR">French (FR)</SelectItem>
-                      <SelectItem value="NL">Dutch (NL)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-3">
+                    <Select
+                      value={formData.local}
+                      onValueChange={(value) => handleInputChange('local', value)}
+                    >
+                      <SelectTrigger className={`flex-1 ${errors.local ? "border-red-500" : ""}`}>
+                        <SelectValue placeholder="Select local (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FR">🇫🇷 French (FR)</SelectItem>
+                        <SelectItem value="NL">🇳🇱 Dutch (NL)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Visual Local Indicator */}
+                    <div className="flex items-center">
+                      {formData.local && (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md">
+                          <span className="text-lg">
+                            {formData.local === 'FR' ? '🇫🇷' : formData.local === 'NL' ? '🇳🇱' : ''}
+                          </span>
+                          <span className="text-sm font-medium text-blue-700">
+                            {formData.local === 'FR' ? 'French' : formData.local === 'NL' ? 'Dutch' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   {errors.local && <p className="text-sm text-red-500">{errors.local}</p>}
                 </div>
 

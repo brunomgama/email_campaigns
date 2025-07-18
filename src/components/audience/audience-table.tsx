@@ -10,6 +10,7 @@ import {
   IconMail,
   IconDatabase,
   IconRefresh,
+  IconArchive,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -52,6 +53,8 @@ import { Label } from "@/components/ui/label"
 import { AddAudienceModal } from "./add-audience-modal"
 import { EditAudienceModal } from "./edit-audience-modal"
 import { audienceApi, type Audience } from "@/lib/audience-api"
+import { formatNumber } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function AudienceTable() {
   const [data, setData] = React.useState<Audience[]>([])
@@ -79,6 +82,9 @@ export function AudienceTable() {
   // Search state
   const [searchTerm, setSearchTerm] = React.useState("")
   const [searchInput, setSearchInput] = React.useState("")
+
+  // Audience types state
+  const [audienceTypes, setAudienceTypes] = React.useState<{[key: string]: string}>({})
 
   // Debounced search with 500ms delay
   const debouncedSearch = React.useCallback(
@@ -135,6 +141,24 @@ export function AudienceTable() {
     const currentPageKey = pageKeys[pagination.pageIndex] || ""
     fetchAudiences(currentPageKey)
   }, [pagination.pageIndex, pagination.pageSize, searchTerm, fetchAudiences])
+
+  // Fetch audience types for mapping
+  React.useEffect(() => {
+    const fetchAudienceTypes = async () => {
+      try {
+        const { audienceTypesApi } = await import("@/lib/audience-types-api")
+        const result = await audienceTypesApi.list({ limit: 100 })
+        const typesMap = result.results.reduce((acc, type) => {
+          acc[type.id] = type.name
+          return acc
+        }, {} as {[key: string]: string})
+        setAudienceTypes(typesMap)
+      } catch (err) {
+        console.error("Failed to fetch audience types:", err)
+      }
+    }
+    fetchAudienceTypes()
+  }, [])
 
   // Handle when an audience is added
   const handleAudienceAdded = () => {
@@ -220,6 +244,35 @@ export function AudienceTable() {
     }
   }
 
+  // Handle archive/unarchive audience - toggle active status
+  const handleArchive = async (audienceId: string) => {
+    try {
+      // Get the current audience data first
+      const audience = await audienceApi.getOne(audienceId)
+      
+      // Toggle the active status
+      const newActiveStatus = !audience.active
+      
+      // Update with all required fields, toggling active status
+      await audienceApi.update(audienceId, {
+        name: audience.name,
+        local: audience.local,
+        definition: audience.definition,
+        audienceTypeId: audience.audienceTypeId,
+        emailType: audience.emailType,
+        sql: audience.sql,
+        active: newActiveStatus,
+        user: audience.modifyUser // Use existing user or current user
+      })
+      
+      toast.success(newActiveStatus ? "Audience restored successfully!" : "Audience archived successfully!")
+      handleAudienceAdded() // Refresh the table
+    } catch (err) {
+      console.error("Error toggling audience status:", err)
+      toast.error(err instanceof Error ? err.message : "Failed to update audience status")
+    }
+  }
+
   const handlePageSizeChange = (value: string) => {
     const newPageSize = parseInt(value)
     setPagination(prev => ({
@@ -256,23 +309,62 @@ export function AudienceTable() {
     }
   }
 
-  // Get email type badge variant
-  const getEmailTypeBadge = (emailType: string) => {
-    switch (emailType) {
-      case 'campaign':
-        return <Badge variant="default">Campaign</Badge>
-      case 'automation':
-        return <Badge variant="secondary">Automation</Badge>
-      case 'functional':
-        return <Badge variant="outline">Functional</Badge>
+  // Get flag emoji for local
+  const getLocalFlag = (local: string) => {
+    switch (local.toUpperCase()) {
+      case 'FR':
+        return '🇫🇷'
+      case 'NL':
+        return '🇳🇱'
       default:
-        return <Badge variant="outline">{emailType}</Badge>
+        return local
     }
   }
 
-  // Format number with commas
-  const formatNumber = (num: number) => {
-    return num.toLocaleString()
+  // Get email type badge with colors
+  const getEmailTypeBadge = (emailType: string) => {
+    const getTypeColor = (type: string) => {
+      const normalizedType = type.toLowerCase()
+      switch (normalizedType) {
+        case 'campaign':
+          return "bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200"
+        case 'functional':
+          return "bg-green-100 text-green-800 border-green-200 hover:bg-green-200"
+        case 'automation':
+          return "bg-purple-100 text-purple-800 border-purple-200 hover:bg-purple-200"
+        default:
+          return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200"
+      }
+    }
+
+    return (
+      <Badge variant="outline" className={`text-xs ${getTypeColor(emailType)}`}>
+        {emailType.charAt(0).toUpperCase() + emailType.slice(1)}
+      </Badge>
+    )
+  }
+
+  // Get audience type badge with colors
+  const getAudienceTypeBadge = (audienceTypeId: string) => {
+    const typeName = audienceTypes[audienceTypeId] || 'Unknown'
+    
+    const getTypeColor = (name: string) => {
+      const normalizedName = name.toLowerCase()
+      if (normalizedName.includes('overview')) {
+        return "bg-orange-100 text-orange-800 border-orange-200 hover:bg-orange-200"
+      } else if (normalizedName.includes('user') || normalizedName.includes('service')) {
+        return "bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200"
+      } else if (normalizedName.includes('provider')) {
+        return "bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200"
+      }
+      return "bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200"
+    }
+
+    return (
+      <Badge variant="outline" className={`text-xs ${getTypeColor(typeName)}`}>
+        {typeName}
+      </Badge>
+    )
   }
 
   // Define columns inside component to access handlers
@@ -283,10 +375,17 @@ export function AudienceTable() {
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <IconUsers className="h-4 w-4 text-muted-foreground" />
-          <div>
-            <div className="font-medium">{row.getValue("name")}</div>
-            <div className="text-sm text-muted-foreground">{row.original.local}</div>
-          </div>
+          <div className="font-medium">{row.getValue("name")}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "local",
+      header: "Local",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{getLocalFlag(row.getValue("local"))}</span>
+          <span className="text-sm font-medium">{row.getValue("local")}</span>
         </div>
       ),
     },
@@ -301,6 +400,11 @@ export function AudienceTable() {
           </div>
         )
       },
+    },
+    {
+      accessorKey: "audienceTypeId",
+      header: "Audience Type",
+      cell: ({ row }) => getAudienceTypeBadge(row.getValue("audienceTypeId")),
     },
     {
       accessorKey: "emailType",
@@ -335,32 +439,58 @@ export function AudienceTable() {
     },
     {
       id: "actions",
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => {
         const audience = row.original
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <IconDotsVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleEdit(audience)}>
-                <IconEdit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleDelete(audience.id)}
-                className="text-destructive"
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2 justify-end">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(audience)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit audience</TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleArchive(audience.id)}
+                    className="h-8 px-2 text-black hover:text-white hover:bg-black"
+                  >
+                    <IconArchive className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {audience.active ? "Archive audience" : "Restore audience"}
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(audience.id)}
+                    className="h-8 px-2 text-destructive hover:text-white hover:bg-destructive"
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete audience</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )
       },
     },
