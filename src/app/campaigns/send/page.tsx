@@ -18,6 +18,8 @@ import { templatesApi, type Template } from "@/lib/templates-api"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { validate_user } from "@/lib/validate_user"
+import MessageLoading from "@/components/spinner/Loading"
 
 function SendPageContent() {
   const searchParams = useSearchParams()
@@ -441,7 +443,11 @@ function SendPageContent() {
   )
 }
 
-export default function SendPage() {
+export default async function SendPage() {
+  const session = await validate_user();
+  
+  if(!session) { return ( <MessageLoading/> ); }
+
   return (
     <SidebarProvider
       style={

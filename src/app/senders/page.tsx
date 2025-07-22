@@ -5,8 +5,14 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import MessageLoading from "@/components/spinner/Loading";
+import { validate_user } from "@/lib/validate_user";
 
-export default function SendersPage() {
+export default async function SendersPage() {
+    const session = await validate_user();
+  
+    if(!session) { return ( <MessageLoading/> ); }
+
   return (
     <SidebarProvider
       style={

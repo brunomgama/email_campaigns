@@ -9,8 +9,14 @@ import {
 } from "@/components/ui/sidebar"
 
 import data from "./data.json"
+import { validate_user } from "@/lib/validate_user"
+import MessageLoading from "@/components/spinner/Loading"
 
-export default function Page() {
+export default async function Page() {
+  const session = await validate_user();
+
+  if(!session) { return ( <MessageLoading/> ); }
+
   return (
     <SidebarProvider
       style={

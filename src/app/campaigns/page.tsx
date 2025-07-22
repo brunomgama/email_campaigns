@@ -2,8 +2,14 @@ import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import { CampaignsTable } from "@/components/campaigns/campaigns-table"
+import MessageLoading from "@/components/spinner/Loading";
+import { validate_user } from "@/lib/validate_user";
 
-export default function CampaignsPage() {
+export default async function CampaignsPage() {
+    const session = await validate_user();
+  
+    if(!session) { return ( <MessageLoading/> ); }
+
     return (
         <SidebarProvider
         style={

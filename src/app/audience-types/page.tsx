@@ -1,12 +1,18 @@
 import { AppSidebar } from "@/components/app-sidebar"
 import { AudienceTypesTable } from "@/components/audience-types/audience-types-table"
 import { SiteHeader } from "@/components/site-header"
+import MessageLoading from "@/components/spinner/Loading";
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { validate_user } from "@/lib/validate_user";
 
-export default function AudienceTypesPage() {
+export default async function AudienceTypesPage() {
+  const session = await validate_user();
+  
+  if(!session) { return ( <MessageLoading/> ); }
+
   return (
     <SidebarProvider
       style={

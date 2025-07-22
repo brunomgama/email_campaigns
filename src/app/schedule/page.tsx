@@ -8,8 +8,14 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { Calendar } from "../../components/campaigns/campaign-calendar"
+import { validate_user } from "@/lib/validate_user"
+import MessageLoading from "@/components/spinner/Loading"
 
-export default function SchedulePage() {
+export default async function SchedulePage() {
+    const session = await validate_user();
+  
+    if(!session) { return ( <MessageLoading/> ); }
+
   return (
     <SidebarProvider
       style={

@@ -5,8 +5,14 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { TemplatesTable } from "@/components/templates/templates-table"
+import { validate_user } from "@/lib/validate_user";
+import MessageLoading from "@/components/spinner/Loading";
 
-export default function TemplatesPage() {
+export default async function TemplatesPage() {
+    const session = await validate_user();
+  
+    if(!session) { return ( <MessageLoading/> ); }
+
     return (
       <SidebarProvider
         style={
