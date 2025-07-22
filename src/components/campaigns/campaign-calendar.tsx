@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent} from "@/components/ui/tabs"
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock } from "lucide-react"
 import { schedulerApi, Schedule } from "@/lib/scheduler-api"
 import { campaignsApi, Campaign } from "@/lib/campaigns-api"
@@ -19,7 +19,7 @@ interface CalendarEvent {
 
 export function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<"week" | "month">("month")
+
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -41,7 +41,7 @@ export function Calendar() {
             campaign,
             date: new Date(schedule.scheduled_time)
           })
-        } catch (err) {
+        } catch{
           // Campaign might not exist, add schedule without campaign details
           calendarEvents.push({
             schedule,
@@ -66,11 +66,7 @@ export function Calendar() {
   // Navigation functions
   const navigateDate = (direction: "prev" | "next") => {
     const newDate = new Date(currentDate)
-    if (view === "month") {
       newDate.setMonth(newDate.getMonth() + (direction === "next" ? 1 : -1))
-    } else {
-      newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7))
-    }
     setCurrentDate(newDate)
   }
 
@@ -119,21 +115,6 @@ export function Calendar() {
     return days
   }
 
-  // Generate week days for week view
-  const getWeekDays = () => {
-    const start = new Date(currentDate)
-    start.setDate(start.getDate() - start.getDay()) // Start from Sunday
-    
-    const days: Date[] = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(start)
-      date.setDate(start.getDate() + i)
-      days.push(date)
-    }
-    
-    return days
-  }
-
   const handleEventClick = (event: CalendarEvent) => {
     setSelectedEvent(event)
     setIsModalOpen(true)
@@ -141,15 +122,6 @@ export function Calendar() {
 
   const formatMonthYear = (date: Date) => {
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
-  }
-
-  const formatWeekRange = (date: Date) => {
-    const start = new Date(date)
-    start.setDate(start.getDate() - start.getDay())
-    const end = new Date(start)
-    end.setDate(start.getDate() + 6)
-    
-    return `${start.toLocaleDateString("en-US", { month: "short", day: "numeric" })} - ${end.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
   }
 
   if (loading) {
@@ -174,7 +146,7 @@ export function Calendar() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5" />
-              {view === "month" ? formatMonthYear(currentDate) : formatWeekRange(currentDate)}
+              {formatMonthYear(currentDate)}
             </CardTitle>
             
             <div className="flex items-center gap-2">
@@ -202,19 +174,11 @@ export function Calendar() {
         </CardHeader>
         
         <CardContent>
-          <Tabs value={view} className="w-full">
+          <Tabs value={"month"} className="w-full">
             <TabsContent value="month" className="mt-0">
               <MonthView 
                 days={getMonthDays()}
                 currentDate={currentDate}
-                getEventsForDate={getEventsForDate}
-                onEventClick={handleEventClick}
-              />
-            </TabsContent>
-            
-            <TabsContent value="week" className="mt-0">
-              <WeekView 
-                days={getWeekDays()}
                 getEventsForDate={getEventsForDate}
                 onEventClick={handleEventClick}
               />
@@ -295,63 +259,6 @@ function MonthView({ days, currentDate, getEventsForDate, onEventClick }: MonthV
                   +{dayEvents.length - 3} more
                 </div>
               )}
-            </div>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-interface WeekViewProps {
-  days: Date[]
-  getEventsForDate: (date: Date) => CalendarEvent[]
-  onEventClick: (event: CalendarEvent) => void
-}
-
-function WeekView({ days, getEventsForDate, onEventClick }: WeekViewProps) {
-  const today = new Date()
-  const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-  
-  return (
-    <div className="grid grid-cols-7 gap-4">
-      {days.map((day, index) => {
-        const dayEvents = getEventsForDate(day)
-        const isToday = day.toDateString() === today.toDateString()
-        
-        return (
-          <div key={index} className="min-h-[400px]">
-            <div className={`text-center p-2 rounded-lg mb-2 ${
-              isToday ? "bg-primary text-primary-foreground" : "bg-muted"
-            }`}>
-              <div className="text-sm font-medium">{weekDays[index]}</div>
-              <div className="text-lg font-bold">{day.getDate()}</div>
-            </div>
-            
-            <div className="space-y-2">
-              {dayEvents.map((event, eventIndex) => (
-                <Card
-                  key={eventIndex}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => onEventClick(event)}
-                >
-                  <CardContent className="p-3">
-                    <div className="text-sm font-medium truncate">
-                      {event.campaign?.name || "Untitled Campaign"}
-                    </div>
-                    <div className="text-xs text-muted-foreground flex items-center mt-1">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {new Date(event.schedule.scheduled_time).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}
-                    </div>
-                    <Badge variant="outline" className="text-xs mt-2">
-                      {event.schedule.emailReceiver.length} recipients
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ))}
             </div>
           </div>
         )

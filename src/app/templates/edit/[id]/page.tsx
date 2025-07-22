@@ -70,49 +70,48 @@ function EditTemplateContent() {
   const [audienceTypes, setAudienceTypes] = React.useState<AudienceType[]>([])
   const [loadingAudienceTypes, setLoadingAudienceTypes] = React.useState(false)
 
-  // Fetch template data and audience types on mount
   React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        const template = await templatesApi.getOne(templateId)
+        setFormData({
+          name: template.name || "",
+          local: template.local || "",
+          audienceTypeId: template.audienceTypeId || "",
+          emailType: template.emailType || "",
+          header: template.header || "",
+          footer: template.footer || "",
+          unsubscribe: template.unsubscribe || "",
+          status: template.status || "draft",
+        })
+      } catch (err) {
+        console.error("Error fetching template:", err)
+        toast.error("Failed to load template data")
+        router.push('/templates')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  
+    const fetchAudienceTypes = async () => {
+      try {
+        setLoadingAudienceTypes(true)
+        const response = await audienceTypesApi.list({ limit: 100 })
+        setAudienceTypes(response.results || [])
+      } catch (err) {
+        console.error("Error fetching audience types:", err)
+        toast.error("Failed to load audience types")
+      } finally {
+        setLoadingAudienceTypes(false)
+      }
+    }
+  
     if (templateId) {
-      fetchTemplateData(templateId)
+      fetchData()
       fetchAudienceTypes()
     }
-  }, [templateId])
-
-  const fetchTemplateData = async (id: string) => {
-    try {
-      setIsLoading(true)
-      const template = await templatesApi.getOne(id)
-      setFormData({
-        name: template.name || "",
-        local: template.local || "",
-        audienceTypeId: template.audienceTypeId || "",
-        emailType: template.emailType || "",
-        header: template.header || "",
-        footer: template.footer || "",
-        unsubscribe: template.unsubscribe || "",
-        status: template.status || "draft",
-      })
-    } catch (err) {
-      console.error("Error fetching template:", err)
-      toast.error("Failed to load template data")
-      router.push('/templates')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchAudienceTypes = async () => {
-    try {
-      setLoadingAudienceTypes(true)
-      const response = await audienceTypesApi.list({ limit: 100 })
-      setAudienceTypes(response.results || [])
-    } catch (err) {
-      console.error("Error fetching audience types:", err)
-      toast.error("Failed to load audience types")
-    } finally {
-      setLoadingAudienceTypes(false)
-    }
-  }
+  }, [templateId, router])
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))

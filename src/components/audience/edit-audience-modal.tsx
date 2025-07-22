@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -17,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { audienceApi, type Audience, type UpdateAudienceRequest } from "@/lib/audience-api"
+import { audienceApi, type UpdateAudienceRequest } from "@/lib/audience-api"
 import { audienceTypesApi, type AudienceType } from "@/lib/audience-types-api"
 
 interface EditAudienceModalProps {
@@ -70,10 +69,34 @@ export function EditAudienceModal({
   // Load audience data when modal opens and audienceId is provided
   React.useEffect(() => {
     if (isOpen && audienceId) {
+      const fetchAudience = async () => {
+        if (!audienceId) return
+    
+        try {
+          setIsLoading(true)
+          const audience = await audienceApi.getOne(audienceId)
+          setFormData({
+            name: audience.name,
+            local: audience.local,
+            definition: audience.definition || "",
+            audienceTypeId: audience.audienceTypeId,
+            emailType: audience.emailType as 'campaign' | 'automation' | 'functional',
+            sql: audience.sql,
+            active: audience.active,
+          })
+        } catch (err) {
+          console.error("Error fetching audience:", err)
+          toast.error("Failed to load audience data")
+          onCloseAction()
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
       fetchAudience()
       fetchAudienceTypes()
     }
-  }, [isOpen, audienceId])
+  }, [isOpen, audienceId, onCloseAction])
 
   // Reset form when modal closes
   React.useEffect(() => {
@@ -92,30 +115,6 @@ export function EditAudienceModal({
       setIsLoading(false)
     }
   }, [isOpen])
-
-  const fetchAudience = async () => {
-    if (!audienceId) return
-
-    try {
-      setIsLoading(true)
-      const audience = await audienceApi.getOne(audienceId)
-      setFormData({
-        name: audience.name,
-        local: audience.local,
-        definition: audience.definition || "",
-        audienceTypeId: audience.audienceTypeId,
-        emailType: audience.emailType as 'campaign' | 'automation' | 'functional',
-        sql: audience.sql,
-        active: audience.active,
-      })
-    } catch (err) {
-      console.error("Error fetching audience:", err)
-      toast.error("Failed to load audience data")
-      onCloseAction()
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const fetchAudienceTypes = async () => {
     try {

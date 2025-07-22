@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   Calendar, 
@@ -16,7 +15,6 @@ import {
   Send,
   Edit,
   Trash2,
-  Copy,
   Eye
 } from "lucide-react"
 import { toast } from "sonner"
@@ -151,32 +149,32 @@ export function ScheduleEventModal({ event, isOpen, onClose }: ScheduleEventModa
   // Fetch related data when event changes
   useEffect(() => {
     if (event?.campaign && isOpen) {
+      const fetchRelatedData = async () => {
+        if (!event?.campaign) return
+    
+        try {
+          setLoading(true)
+          
+          const [audienceResponse, senderResponse, templateResponse] = await Promise.all([
+            event.campaign.audienceId ? audienceApi.getOne(event.campaign.audienceId).catch(() => null) : null,
+            event.campaign.senderId ? sendersApi.getOne(event.campaign.senderId).catch(() => null) : null,
+            event.campaign.templateId ? templatesApi.getOne(event.campaign.templateId).catch(() => null) : null,
+          ])
+          
+          setAudience(audienceResponse)
+          setSender(senderResponse)
+          setTemplate(templateResponse)
+        } catch (err) {
+          console.error("Error fetching related data:", err)
+          toast.error("Failed to load complete event details")
+        } finally {
+          setLoading(false)
+        }
+      }
+      
       fetchRelatedData()
     }
   }, [event, isOpen])
-
-  const fetchRelatedData = async () => {
-    if (!event?.campaign) return
-
-    try {
-      setLoading(true)
-      
-      const [audienceResponse, senderResponse, templateResponse] = await Promise.all([
-        event.campaign.audienceId ? audienceApi.getOne(event.campaign.audienceId).catch(() => null) : null,
-        event.campaign.senderId ? sendersApi.getOne(event.campaign.senderId).catch(() => null) : null,
-        event.campaign.templateId ? templatesApi.getOne(event.campaign.templateId).catch(() => null) : null,
-      ])
-      
-      setAudience(audienceResponse)
-      setSender(senderResponse)
-      setTemplate(templateResponse)
-    } catch (err) {
-      console.error("Error fetching related data:", err)
-      toast.error("Failed to load complete event details")
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleDeleteSchedule = async () => {
     if (!event?.schedule.id) return

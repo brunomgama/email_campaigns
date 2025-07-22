@@ -77,10 +77,57 @@ export function EditCampaignModal({ isOpen, onCloseAction, onCampaignUpdatedActi
   // Load campaign data when modal opens and campaignId is provided
   React.useEffect(() => {
     if (isOpen && campaignId) {
+      const fetchCampaign = async () => {
+        if (!campaignId) return
+        
+        try {
+          setIsLoading(true)
+          const campaign = await campaignsApi.getOne(campaignId)
+          setFormData({
+            name: campaign.name,
+            local: campaign.local,
+            audienceId: campaign.audienceId,
+            senderId: campaign.senderId,
+            senderAlias: campaign.senderAlias,
+            subject: campaign.subject,
+            content: campaign.content,
+            templateId: campaign.templateId,
+            status: campaign.status,
+          })
+        } catch (err) {
+          console.error("Error fetching campaign:", err)
+          toast.error("Failed to load campaign data")
+          onCloseAction()
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    
+      const fetchRelatedData = async () => {
+        try {
+          setLoadingRelatedData(true)
+          
+          const [audiencesResponse, sendersResponse, templatesResponse] = await Promise.all([
+            audienceApi.list({ limit: 100 }),
+            sendersApi.list({ limit: 100 }),
+            templatesApi.list({ limit: 100 })
+          ])
+          
+          setAudiences(audiencesResponse.results || [])
+          setSenders(sendersResponse.results || [])
+          setTemplates(templatesResponse.results || [])
+        } catch (err) {
+          console.error("Error fetching related data:", err)
+          toast.error("Failed to load related data")
+        } finally {
+          setLoadingRelatedData(false)
+        }
+      }
+
       fetchCampaign()
       fetchRelatedData()
     }
-  }, [isOpen, campaignId])
+  }, [isOpen, campaignId, onCloseAction])
 
   // Reset form when modal closes
   React.useEffect(() => {
@@ -101,53 +148,6 @@ export function EditCampaignModal({ isOpen, onCloseAction, onCampaignUpdatedActi
       setIsLoading(false)
     }
   }, [isOpen])
-
-  const fetchCampaign = async () => {
-    if (!campaignId) return
-    
-    try {
-      setIsLoading(true)
-      const campaign = await campaignsApi.getOne(campaignId)
-      setFormData({
-        name: campaign.name,
-        local: campaign.local,
-        audienceId: campaign.audienceId,
-        senderId: campaign.senderId,
-        senderAlias: campaign.senderAlias,
-        subject: campaign.subject,
-        content: campaign.content,
-        templateId: campaign.templateId,
-        status: campaign.status,
-      })
-    } catch (err) {
-      console.error("Error fetching campaign:", err)
-      toast.error("Failed to load campaign data")
-      onCloseAction()
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchRelatedData = async () => {
-    try {
-      setLoadingRelatedData(true)
-      
-      const [audiencesResponse, sendersResponse, templatesResponse] = await Promise.all([
-        audienceApi.list({ limit: 100 }),
-        sendersApi.list({ limit: 100 }),
-        templatesApi.list({ limit: 100 })
-      ])
-      
-      setAudiences(audiencesResponse.results || [])
-      setSenders(sendersResponse.results || [])
-      setTemplates(templatesResponse.results || [])
-    } catch (err) {
-      console.error("Error fetching related data:", err)
-      toast.error("Failed to load related data")
-    } finally {
-      setLoadingRelatedData(false)
-    }
-  }
 
   // Close modal on escape key
   React.useEffect(() => {

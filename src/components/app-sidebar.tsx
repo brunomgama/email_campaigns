@@ -4,12 +4,8 @@ import * as React from "react"
 import {
   IconDashboard,
   IconDatabase,
-  IconFileWord,
-  IconHelp,
   IconInnerShadowTop,
   IconMail,
-  IconReport,
-  IconSearch,
   IconSettings,
   IconUsers,
   IconUsersGroup,

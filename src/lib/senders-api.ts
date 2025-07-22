@@ -1,5 +1,3 @@
-import { toast } from "sonner"
-
 export interface Sender {
   id: string
   email: string

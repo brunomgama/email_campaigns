@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  IconDotsVertical,
   IconEdit,
   IconPlus,
   IconTrash,
@@ -61,30 +60,7 @@ export function TemplatesTable() {
   const [hasNextPage, setHasNextPage] = React.useState(false)
   const [hasPreviousPage, setHasPreviousPage] = React.useState(false)
   const [pageKeys, setPageKeys] = React.useState<string[]>([""])
-  
-  // Search state
-  const [searchTerm, setSearchTerm] = React.useState("")
-  const [searchInput, setSearchInput] = React.useState("")
 
-  // Debounced search with 500ms delay
-  const debouncedSearch = React.useCallback(
-    React.useMemo(() => {
-      let timeoutId: NodeJS.Timeout
-      return (value: string) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          setSearchTerm(value)
-          // Reset pagination when searching
-          setPagination(prev => ({ ...prev, pageIndex: 0 }))
-          setPageKeys([""])
-          setLastEvaluatedKey("")
-          setHasNextPage(false)
-          setHasPreviousPage(false)
-        }, 500)
-      }
-    }, []),
-    []
-  )
 
   // Fetch templates function using API service
   const fetchTemplates = React.useCallback(async (lastKey = "") => {
@@ -94,7 +70,6 @@ export function TemplatesTable() {
       const result = await templatesApi.list({
         limit: pagination.pageSize,
         lastKey: lastKey || undefined,
-        search: searchTerm || undefined,
       })
       
       setData(result.results)
@@ -109,12 +84,12 @@ export function TemplatesTable() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.pageSize, pagination.pageIndex, searchTerm])
+  }, [pagination.pageSize, pagination.pageIndex])
 
   React.useEffect(() => {
     const currentPageKey = pageKeys[pagination.pageIndex] || ""
     fetchTemplates(currentPageKey)
-  }, [pagination.pageIndex, pagination.pageSize, searchTerm, fetchTemplates])
+  }, [pagination.pageIndex, pagination.pageSize, fetchTemplates, pageKeys])
 
   // Handle when a template is added
   const handleTemplateAdded = () => {
@@ -177,16 +152,9 @@ export function TemplatesTable() {
     }
   }
 
-  // Handle when a template is updated
-  const handleTemplateUpdated = () => {
-    // Refresh current page
-    const currentPageKey = pageKeys[pagination.pageIndex] || ""
-    fetchTemplates(currentPageKey)
-  }
-
   const handlePageSizeChange = (value: string) => {
     const newPageSize = parseInt(value)
-    setPagination(prev => ({
+    setPagination(({
       pageIndex: 0,
       pageSize: newPageSize
     }))

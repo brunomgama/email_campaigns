@@ -70,38 +70,8 @@ export function AudienceTable() {
   const [selectedAudienceId, setSelectedAudienceId] = React.useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = React.useState(false)
 
-  // Search state
-  const [searchTerm, setSearchTerm] = React.useState("")
-  const [searchInput, setSearchInput] = React.useState("")
-
   // Audience types state
   const [audienceTypes, setAudienceTypes] = React.useState<{[key: string]: string}>({})
-
-  // Debounced search with 500ms delay
-  const debouncedSearch = React.useCallback(
-    React.useMemo(() => {
-      let timeoutId: NodeJS.Timeout
-      return (value: string) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          setSearchTerm(value)
-          // Reset pagination when searching
-          setPagination(prev => ({ ...prev, pageIndex: 0 }))
-          setPageKeys([""])
-          setLastEvaluatedKey("")
-          setHasNextPage(false)
-          setHasPreviousPage(false)
-        }, 500)
-      }
-    }, []),
-    []
-  )
-
-  // Handle search input change
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
 
   // Fetch audiences function using API service
   const fetchAudiences = React.useCallback(async (lastKey = "") => {
@@ -110,8 +80,7 @@ export function AudienceTable() {
       
       const result = await audienceApi.list({
         limit: pagination.pageSize,
-        lastKey: lastKey || undefined,
-        search: searchTerm || undefined,
+        lastKey: lastKey || undefined
       })
       
       setData(result.results)
@@ -126,12 +95,12 @@ export function AudienceTable() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.pageSize, pagination.pageIndex, searchTerm])
+  }, [pagination.pageSize, pagination.pageIndex])
 
   React.useEffect(() => {
     const currentPageKey = pageKeys[pagination.pageIndex] || ""
     fetchAudiences(currentPageKey)
-  }, [pagination.pageIndex, pagination.pageSize, searchTerm, fetchAudiences])
+  }, [pagination.pageIndex, pagination.pageSize, fetchAudiences, pageKeys])
 
   // Fetch audience types for mapping
   React.useEffect(() => {
@@ -266,7 +235,7 @@ export function AudienceTable() {
 
   const handlePageSizeChange = (value: string) => {
     const newPageSize = parseInt(value)
-    setPagination(prev => ({
+    setPagination(({
       pageIndex: 0,
       pageSize: newPageSize
     }))

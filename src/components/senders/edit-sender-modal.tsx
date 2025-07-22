@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { sendersApi, type Sender } from "@/lib/senders-api"
+import { sendersApi } from "@/lib/senders-api"
 
 interface EditSenderModalProps {
   isOpen: boolean
@@ -49,9 +49,28 @@ export function EditSenderModal({ isOpen, onCloseAction, onSenderUpdatedAction, 
   // Fetch sender data when modal opens
   React.useEffect(() => {
     if (isOpen && senderId) {
+      const fetchSenderData = async (id: string) => {
+        try {
+          setIsLoading(true)
+          const sender = await sendersApi.getOne(id)
+          setFormData({
+            email: sender.email,
+            alias: sender.alias || [],
+            emailType: sender.emailType || [],
+            active: sender.active
+          })
+        } catch (err) {
+          console.error("Error fetching sender:", err)
+          toast.error("Failed to load sender data")
+          onCloseAction()
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
       fetchSenderData(senderId)
     }
-  }, [isOpen, senderId])
+  }, [isOpen, senderId, onCloseAction])
 
   // Reset form when modal closes
   React.useEffect(() => {
@@ -67,25 +86,6 @@ export function EditSenderModal({ isOpen, onCloseAction, onSenderUpdatedAction, 
       setErrors({})
     }
   }, [isOpen])
-
-  const fetchSenderData = async (id: string) => {
-    try {
-      setIsLoading(true)
-      const sender = await sendersApi.getOne(id)
-      setFormData({
-        email: sender.email,
-        alias: sender.alias || [],
-        emailType: sender.emailType || [],
-        active: sender.active
-      })
-    } catch (err) {
-      console.error("Error fetching sender:", err)
-      toast.error("Failed to load sender data")
-      onCloseAction()
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   // Close modal on escape key
   React.useEffect(() => {

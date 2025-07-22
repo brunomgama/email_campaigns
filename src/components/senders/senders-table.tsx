@@ -67,36 +67,6 @@ export function SendersTable() {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [selectedSenderId, setSelectedSenderId] = React.useState<string | null>(null)
 
-  // Search state
-  const [searchTerm, setSearchTerm] = React.useState("")
-  const [searchInput, setSearchInput] = React.useState("")
-
-  // Debounced search with 500ms delay
-  const debouncedSearch = React.useCallback(
-    React.useMemo(() => {
-      let timeoutId: NodeJS.Timeout
-      return (value: string) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          setSearchTerm(value)
-          // Reset pagination when searching
-          setPagination(prev => ({ ...prev, pageIndex: 0 }))
-          setPageKeys([""])
-          setLastEvaluatedKey("")
-          setHasNextPage(false)
-          setHasPreviousPage(false)
-        }, 500)
-      }
-    }, []),
-    []
-  )
-
-  // Handle search input change
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
-
   // Fetch senders function using API service
   const fetchSenders = React.useCallback(async (lastKey = "") => {
     try {
@@ -104,8 +74,7 @@ export function SendersTable() {
       
       const result = await sendersApi.list({
         limit: pagination.pageSize,
-        lastKey: lastKey || undefined,
-        search: searchTerm || undefined,
+        lastKey: lastKey || undefined
       })
       
       setData(result.results)
@@ -120,12 +89,12 @@ export function SendersTable() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.pageSize, pagination.pageIndex, searchTerm])
+  }, [pagination.pageSize, pagination.pageIndex])
 
   React.useEffect(() => {
     const currentPageKey = pageKeys[pagination.pageIndex] || ""
     fetchSenders(currentPageKey)
-  }, [pagination.pageIndex, pagination.pageSize, searchTerm, fetchSenders])
+  }, [pagination.pageIndex, pagination.pageSize, fetchSenders, pageKeys])
 
   // Handle when a sender is added
   const handleSenderAdded = () => {
@@ -195,7 +164,7 @@ export function SendersTable() {
 
   const handlePageSizeChange = (value: string) => {
     const newPageSize = parseInt(value)
-    setPagination(prev => ({
+    setPagination(({
       pageIndex: 0,
       pageSize: newPageSize
     }))

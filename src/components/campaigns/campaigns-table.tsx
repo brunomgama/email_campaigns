@@ -71,30 +71,6 @@ export function CampaignsTable() {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [selectedCampaignId, setSelectedCampaignId] = React.useState<string | null>(null)
 
-  // Search state
-  const [searchTerm, setSearchTerm] = React.useState("")
-  const [searchInput, setSearchInput] = React.useState("")
-
-  // Debounced search with 500ms delay
-  const debouncedSearch = React.useCallback(
-    React.useMemo(() => {
-      let timeoutId: NodeJS.Timeout
-      return (value: string) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          setSearchTerm(value)
-          // Reset pagination when searching
-          setPagination(prev => ({ ...prev, pageIndex: 0 }))
-          setPageKeys([""])
-          setLastEvaluatedKey("")
-          setHasNextPage(false)
-          setHasPreviousPage(false)
-        }, 500)
-      }
-    }, []),
-    []
-  )
-
   // Fetch campaigns function using API service
   const fetchCampaigns = React.useCallback(async (lastKey = "") => {
     try {
@@ -102,8 +78,7 @@ export function CampaignsTable() {
       
       const result = await campaignsApi.list({
         limit: pagination.pageSize,
-        lastKey: lastKey || undefined,
-        search: searchTerm || undefined,
+        lastKey: lastKey || undefined
       })
       
       setData(result.results)
@@ -118,12 +93,12 @@ export function CampaignsTable() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.pageSize, pagination.pageIndex, searchTerm])
+  }, [pagination.pageSize, pagination.pageIndex])
 
   React.useEffect(() => {
     const currentPageKey = pageKeys[pagination.pageIndex] || ""
     fetchCampaigns(currentPageKey)
-  }, [pagination.pageIndex, pagination.pageSize, searchTerm, fetchCampaigns])
+  }, [pagination.pageIndex, pagination.pageSize, fetchCampaigns, pageKeys])
 
   // Handle when a campaign is added
   const handleCampaignAdded = () => {
@@ -185,7 +160,7 @@ export function CampaignsTable() {
 
   const handlePageSizeChange = (value: string) => {
     const newPageSize = parseInt(value)
-    setPagination(prev => ({
+    setPagination(({
       pageIndex: 0,
       pageSize: newPageSize
     }))

@@ -68,36 +68,6 @@ export function AudienceTypesTable() {
   const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
   const [selectedAudienceTypeId, setSelectedAudienceTypeId] = React.useState<string | null>(null)
 
-  // Search state
-  const [searchTerm, setSearchTerm] = React.useState("")
-  const [searchInput, setSearchInput] = React.useState("")
-
-  // Debounced search with 500ms delay
-  const debouncedSearch = React.useCallback(
-    React.useMemo(() => {
-      let timeoutId: NodeJS.Timeout
-      return (value: string) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          setSearchTerm(value)
-          // Reset pagination when searching
-          setPagination(prev => ({ ...prev, pageIndex: 0 }))
-          setPageKeys([""])
-          setLastEvaluatedKey("")
-          setHasNextPage(false)
-          setHasPreviousPage(false)
-        }, 500)
-      }
-    }, []),
-    []
-  )
-
-  // Handle search input change
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
-
   // Fetch audience types function using API service
   const fetchAudienceTypes = React.useCallback(async (lastKey = "") => {
     try {
@@ -106,7 +76,6 @@ export function AudienceTypesTable() {
       const result = await audienceTypesApi.list({
         limit: pagination.pageSize,
         lastKey: lastKey || undefined,
-        search: searchTerm || undefined,
       })
       
       setData(result.results)
@@ -121,12 +90,12 @@ export function AudienceTypesTable() {
     } finally {
       setLoading(false)
     }
-  }, [pagination.pageSize, pagination.pageIndex, searchTerm])
+  }, [pagination.pageSize, pagination.pageIndex])
 
   React.useEffect(() => {
     const currentPageKey = pageKeys[pagination.pageIndex] || ""
     fetchAudienceTypes(currentPageKey)
-  }, [pagination.pageIndex, pagination.pageSize, searchTerm, fetchAudienceTypes])
+  }, [pagination.pageIndex, pagination.pageSize, fetchAudienceTypes, pageKeys])
 
   // Handle when an audience type is added
   const handleAudienceTypeAdded = () => {
@@ -170,7 +139,7 @@ export function AudienceTypesTable() {
 
   const handlePageSizeChange = (value: string) => {
     const newPageSize = parseInt(value)
-    setPagination(prev => ({
+    setPagination(({
       pageIndex: 0,
       pageSize: newPageSize
     }))

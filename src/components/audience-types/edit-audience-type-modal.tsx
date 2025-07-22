@@ -31,9 +31,24 @@ export function EditAudienceTypeModal({ isOpen, onCloseAction, onAudienceTypeUpd
   // Fetch audience type data when modal opens
   React.useEffect(() => {
     if (isOpen && audienceTypeId) {
+      const fetchAudienceTypeData = async (id: string) => {
+        try {
+          setIsLoading(true)
+          const audienceType = await audienceTypesApi.getOne(id)
+          setFormData({
+            name: audienceType.name
+          })
+        } catch (err) {
+          console.error("Error fetching audience type:", err)
+          toast.error("Failed to load audience type data")
+          onCloseAction()
+        } finally {
+          setIsLoading(false)
+        }
+      }
       fetchAudienceTypeData(audienceTypeId)
     }
-  }, [isOpen, audienceTypeId])
+  }, [isOpen, audienceTypeId, onCloseAction])
 
   // Reset form when modal closes
   React.useEffect(() => {
@@ -44,22 +59,6 @@ export function EditAudienceTypeModal({ isOpen, onCloseAction, onAudienceTypeUpd
       setErrors({})
     }
   }, [isOpen])
-
-  const fetchAudienceTypeData = async (id: string) => {
-    try {
-      setIsLoading(true)
-      const audienceType = await audienceTypesApi.getOne(id)
-      setFormData({
-        name: audienceType.name
-      })
-    } catch (err) {
-      console.error("Error fetching audience type:", err)
-      toast.error("Failed to load audience type data")
-      onCloseAction()
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   // Close modal on escape key
   React.useEffect(() => {

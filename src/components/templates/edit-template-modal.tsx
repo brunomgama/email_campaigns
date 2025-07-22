@@ -68,10 +68,46 @@ export function EditTemplateModal({ isOpen, onCloseAction, onTemplateUpdatedActi
   // Fetch template data when modal opens
   React.useEffect(() => {
     if (isOpen && templateId) {
+      const fetchTemplateData = async (id: string) => {
+        try {
+          setIsLoading(true)
+          const template = await templatesApi.getOne(id)
+          setFormData({
+            name: template.name || "",
+            local: template.local || "",
+            audienceTypeId: template.audienceTypeId || "",
+            emailType: template.emailType || "",
+            header: template.header || "",
+            footer: template.footer || "",
+            unsubscribe: template.unsubscribe || "",
+            status: template.status || "draft",
+          })
+        } catch (err) {
+          console.error("Error fetching template:", err)
+          toast.error("Failed to load template data")
+          onCloseAction()
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    
+      const fetchAudienceTypes = async () => {
+        try {
+          setLoadingAudienceTypes(true)
+          const response = await audienceTypesApi.list({ limit: 100 })
+          setAudienceTypes(response.results || [])
+        } catch (err) {
+          console.error("Error fetching audience types:", err)
+          toast.error("Failed to load audience types")
+        } finally {
+          setLoadingAudienceTypes(false)
+        }
+      }
+
       fetchTemplateData(templateId)
       fetchAudienceTypes()
     }
-  }, [isOpen, templateId])
+  }, [isOpen, templateId, onCloseAction])
 
   // Reset form when modal closes
   React.useEffect(() => {
@@ -91,42 +127,6 @@ export function EditTemplateModal({ isOpen, onCloseAction, onTemplateUpdatedActi
       setIsLoading(false)
     }
   }, [isOpen])
-
-  const fetchTemplateData = async (id: string) => {
-    try {
-      setIsLoading(true)
-      const template = await templatesApi.getOne(id)
-      setFormData({
-        name: template.name || "",
-        local: template.local || "",
-        audienceTypeId: template.audienceTypeId || "",
-        emailType: template.emailType || "",
-        header: template.header || "",
-        footer: template.footer || "",
-        unsubscribe: template.unsubscribe || "",
-        status: template.status || "draft",
-      })
-    } catch (err) {
-      console.error("Error fetching template:", err)
-      toast.error("Failed to load template data")
-      onCloseAction()
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const fetchAudienceTypes = async () => {
-    try {
-      setLoadingAudienceTypes(true)
-      const response = await audienceTypesApi.list({ limit: 100 })
-      setAudienceTypes(response.results || [])
-    } catch (err) {
-      console.error("Error fetching audience types:", err)
-      toast.error("Failed to load audience types")
-    } finally {
-      setLoadingAudienceTypes(false)
-    }
-  }
 
   // Close modal on escape key
   React.useEffect(() => {

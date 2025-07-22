@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { IconArrowLeft, IconMail, IconPlus, IconTrash } from "@tabler/icons-react"
 import { toast } from "sonner"
@@ -199,8 +200,6 @@ function SendPageContent() {
 
     return parts.join("\n\n")
   }
-
-  const selectedCampaign = campaigns.find(c => c.id === selectedCampaignId)
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -454,17 +453,19 @@ export default function SendPage() {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <div className="px-4 lg:px-6">
+      <SiteHeader />
+      <div className="flex flex-1 flex-col">
+        <div className="@container/main flex flex-1 flex-col gap-2">
+          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            <div className="px-4 lg:px-6">
+              <Suspense fallback={<div className="p-4">Loading...</div>}>
                 <SendPageContent />
-              </div>
+              </Suspense>
             </div>
           </div>
         </div>
-      </SidebarInset>
+      </div>
+    </SidebarInset>
     </SidebarProvider>
   )
 }
