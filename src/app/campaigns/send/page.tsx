@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { campaignsApi, type Campaign, type SendEmailRequest } from "@/lib/campaigns-api"
+import { campaignsApi, type Campaign, type SendEmailRequest, type ScheduleEmailRequest } from "@/lib/campaigns-api"
 import { templatesApi, type Template } from "@/lib/templates-api"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -33,9 +33,16 @@ function SendPageContent() {
 
   // Form state
   const [emailReceivers, setEmailReceivers] = React.useState<string>("")
+  const [scheduledDate, setScheduledDate] = React.useState<string>("")
+  const [scheduledTime, setScheduledTime] = React.useState<string>("")
   const [variables, setVariables] = React.useState<Array<{ key: string; value: string }>>([
     { key: "unsubscribe_label", value: "Unsubscribe" }
   ])
+
+  // Check if email should be scheduled
+  const isScheduled = scheduledDate && scheduledTime
+  const buttonText = isScheduled ? "Plan Email" : "Send Email"
+  const sendingText = isScheduled ? "Planning..." : "Sending..."
 
   // Load campaigns list for dropdown
   React.useEffect(() => {
@@ -150,11 +157,26 @@ function SendPageContent() {
         variables: Object.keys(variablesObj).length > 0 ? variablesObj : undefined
       }
 
-      await campaignsApi.sendEmail(sendRequest)
-      toast.success(`Email sent successfully to ${emails.length} recipient(s)`)
+      // If scheduled, use the scheduleEmail endpoint
+      if (isScheduled) {
+        const scheduleRequest: ScheduleEmailRequest = {
+          campaignId: campaign.id,
+          emailReceiver: emails,
+          scheduled_time: new Date(`${scheduledDate}T${scheduledTime}`).toISOString(),
+          variables: Object.keys(variablesObj).length > 0 ? variablesObj : undefined
+        }
+
+        await campaignsApi.scheduleEmail(scheduleRequest)
+        toast.success(`Email scheduled successfully for ${scheduledDate} ${scheduledTime}`)
+      } else {
+        await campaignsApi.sendEmail(sendRequest)
+        toast.success(`Email sent successfully to ${emails.length} recipient(s)`)
+      }
 
       // Clear form
       setEmailReceivers("")
+      setScheduledDate("")
+      setScheduledTime("")
       setVariables([{ key: "unsubscribe_label", value: "Unsubscribe" }])
     } catch (err) {
       console.error("Error sending email:", err)
@@ -311,6 +333,28 @@ function SendPageContent() {
                   Separate multiple email addresses with commas
                 </p>
               </div>
+
+              {/* Schedule Date and Time */}
+              <div>
+                <Label htmlFor="scheduledDate">Schedule Date</Label>
+                <Input
+                  id="scheduledDate"
+                  type="date"
+                  value={scheduledDate}
+                  onChange={(e) => setScheduledDate(e.target.value)}
+                  disabled={!campaign}
+                />
+              </div>
+              <div>
+                <Label htmlFor="scheduledTime">Schedule Time</Label>
+                <Input
+                  id="scheduledTime"
+                  type="time"
+                  value={scheduledTime}
+                  onChange={(e) => setScheduledTime(e.target.value)}
+                  disabled={!campaign}
+                />
+              </div>
             </CardContent>
           </Card>
 
@@ -390,7 +434,7 @@ function SendPageContent() {
             className="w-full"
             size="lg"
           >
-            {sending ? "Sending..." : "Send Email"}
+            {sending ? sendingText : buttonText}
           </Button>
         </div>
       </div>

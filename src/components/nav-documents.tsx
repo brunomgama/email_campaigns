@@ -13,9 +13,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-export function NavDocuments({
-  items,
-}: {
+export function NavDocuments({title, items}: {
+  title: string
   items: {
     name: string
     url: string
@@ -25,7 +24,7 @@ export function NavDocuments({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>{title}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>

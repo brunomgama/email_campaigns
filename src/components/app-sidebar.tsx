@@ -16,6 +16,7 @@ import {
   IconTemplate,
   IconSelectAll,
   IconSend,
+  IconCalendar,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "../components/nav-documents"
@@ -34,8 +35,8 @@ import {
 
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Bruno Gama",
+    email: "bruno@fixxer.eu",
     avatar: "/next.svg",
   },
   navMain: [
@@ -43,36 +44,6 @@ const data = {
       title: "Dashboard",
       url: "/",
       icon: IconDashboard,
-    },
-    {
-      title: "Senders",
-      url: "/senders",
-      icon: IconMail,
-    },
-    {
-      title: "Audience Types",
-      url: "/audience-types",
-      icon: IconUsersGroup,
-    },
-    {
-      title: "Audiences",
-      url: "/audiences",
-      icon: IconUsers,
-    },
-    {
-      title: "Templates",
-      url: "/templates",
-      icon: IconTemplate,
-    },
-    {
-      title: "Campaigns",
-      url: "/campaigns",
-      icon: IconSelectAll,
-    },
-    {
-      title: "Send Email",
-      url: "campaigns/send",
-      icon: IconSend,
     },
   ],
 
@@ -82,15 +53,42 @@ const data = {
       url: "#",
       icon: IconSettings,
     },
+  ],
+  emails: [
     {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
+      name: "Senders",
+      url: "/senders",
+      icon: IconMail,
     },
     {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
+      name: "Audience Types",
+      url: "/audience-types",
+      icon: IconUsersGroup,
+    },
+    {
+      name: "Audiences",
+      url: "/audiences",
+      icon: IconUsers,
+    },
+    {
+      name: "Templates",
+      url: "/templates",
+      icon: IconTemplate,
+    },
+    {
+      name: "Campaigns",
+      url: "/campaigns",
+      icon: IconSelectAll,
+    },
+    {
+      name: "Send Email",
+      url: "/campaigns/send",
+      icon: IconSend,
+    },
+    {
+      name: "Schedule",
+      url: "/schedule",
+      icon: IconCalendar,
     },
   ],
   analytics: [
@@ -114,7 +112,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Bruno Inc.</span>
+                <span className="text-base font-semibold">Fixxer Dashboard</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -122,7 +120,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.analytics} />
+        <NavDocuments title="Emails" items={data.emails} />
+        <NavDocuments title="Documents" items={data.analytics} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

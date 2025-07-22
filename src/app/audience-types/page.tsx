@@ -24,12 +24,6 @@ export default function AudienceTypesPage() {
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="px-4 lg:px-6">
                 <div className="flex flex-col gap-4">
-                  <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">Audience Types</h1>
-                    <p className="text-muted-foreground">
-                      Manage audience type categories and classifications
-                    </p>
-                  </div>
                   <AudienceTypesTable />
                 </div>
               </div>

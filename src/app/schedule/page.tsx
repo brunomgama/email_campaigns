@@ -1,12 +1,15 @@
+"use client"
+
+import React from "react"
 import { AppSidebar } from "@/components/app-sidebar"
-import { SendersTable } from "../../components/senders/senders-table"
 import { SiteHeader } from "@/components/site-header"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { Calendar } from "../../components/campaigns/campaign-calendar"
 
-export default function SendersPage() {
+export default function SchedulePage() {
   return (
     <SidebarProvider
       style={
@@ -23,9 +26,16 @@ export default function SendersPage() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <div className="px-4 lg:px-6">
-                <div className="flex flex-col gap-4">
-                  <SendersTable />
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Campaign Schedule</h1>
+                    <p className="text-muted-foreground">
+                      View and manage your scheduled email campaigns
+                    </p>
+                  </div>
                 </div>
+                
+                <Calendar />
               </div>
             </div>
           </div>

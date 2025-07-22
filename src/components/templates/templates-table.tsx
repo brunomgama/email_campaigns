@@ -26,13 +26,6 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Table,
   TableBody,
   TableCell,
@@ -48,10 +41,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { AddTemplateModal } from "./add-template-modal"
-import { EditTemplateModal } from "./edit-template-modal"
 import { templatesApi, type Template } from "@/lib/templates-api"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import Link from "next/link"
 
 export function TemplatesTable() {
   const [data, setData] = React.useState<Template[]>([])
@@ -70,11 +62,6 @@ export function TemplatesTable() {
   const [hasPreviousPage, setHasPreviousPage] = React.useState(false)
   const [pageKeys, setPageKeys] = React.useState<string[]>([""])
   
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = React.useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false)
-  const [selectedTemplateId, setSelectedTemplateId] = React.useState<string | null>(null)
-
   // Search state
   const [searchTerm, setSearchTerm] = React.useState("")
   const [searchInput, setSearchInput] = React.useState("")
@@ -98,12 +85,6 @@ export function TemplatesTable() {
     }, []),
     []
   )
-
-  // Handle search input change
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
 
   // Fetch templates function using API service
   const fetchTemplates = React.useCallback(async (lastKey = "") => {
@@ -146,10 +127,10 @@ export function TemplatesTable() {
     fetchTemplates("")
   }
 
-  // Handle edit template
+  // Handle edit template - now navigates to edit page
   const handleEdit = (template: Template) => {
-    setSelectedTemplateId(template.id)
-    setIsEditModalOpen(true)
+    // Navigate to edit page instead of opening modal
+    window.location.href = `/templates/edit/${template.id}`
   }
 
   // Handle delete template using API service
@@ -434,11 +415,19 @@ export function TemplatesTable() {
   return (
     <>
       <div className="w-full space-y-4">
-        <div className="flex justify-end">
-          <Button onClick={() => setIsModalOpen(true)}>
-            <IconPlus className="mr-2 h-4 w-4" />
-            Add Template
-          </Button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
+            <p className="text-muted-foreground">
+              Manage your email templates
+            </p>
+          </div>
+          <Link href="/templates/add">
+            <Button>
+              <IconPlus className="mr-2 h-4 w-4" />
+              Add Template
+            </Button>
+          </Link>
         </div>
         <div className="rounded-md border">
           <Table>
@@ -533,24 +522,6 @@ export function TemplatesTable() {
           </div>
         </div>
       </div>
-
-      {/* Add Template Modal */}
-      <AddTemplateModal
-        isOpen={isModalOpen}
-        onCloseAction={() => setIsModalOpen(false)}
-        onTemplateAddedAction={handleTemplateAdded}
-      />
-
-      {/* Edit Template Modal */}
-      <EditTemplateModal
-        isOpen={isEditModalOpen}
-        onCloseAction={() => {
-          setIsEditModalOpen(false)
-          setSelectedTemplateId(null)
-        }}
-        onTemplateUpdatedAction={handleTemplateUpdated}
-        templateId={selectedTemplateId}
-      />
     </>
   )
 }

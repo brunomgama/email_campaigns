@@ -2,13 +2,11 @@
 
 import * as React from "react"
 import {
-  IconDotsVertical,
   IconEdit,
   IconPlus,
   IconTrash,
   IconUsers,
   IconMail,
-  IconDatabase,
   IconRefresh,
   IconArchive,
 } from "@tabler/icons-react"
@@ -27,13 +25,6 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   Table,
   TableBody,
@@ -362,7 +353,7 @@ export function AudienceTable() {
 
     return (
       <Badge variant="outline" className={`text-xs ${getTypeColor(typeName)}`}>
-        {typeName}
+        {typeName.charAt(0).toUpperCase() + typeName.slice(1)}
       </Badge>
     )
   }
@@ -543,26 +534,29 @@ export function AudienceTable() {
       )}
       
       <div className="w-full space-y-4">
-        {/* <div className="flex items-center justify-between">
-          <Input
-            placeholder="Search audiences..."
-            value={searchInput}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            className="max-w-sm"
-          /> */}
-          <div className="flex justify-end gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleRefreshRecipients}
-            disabled={isRefreshing || !data.length}
-          >
-            <IconRefresh className="h-4 w-4" />
-          </Button>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <IconPlus className="mr-2 h-4 w-4" />
-            Add Audience
-          </Button>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Audiences</h1>
+            <p className="text-muted-foreground">
+              Manage audiences and their configurations
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleRefreshRecipients}
+              disabled={isRefreshing || !data.length}
+            >
+              <IconRefresh className="h-4 w-4" />
+            </Button>
+            <Button onClick={() => setIsModalOpen(true)}>
+              <IconPlus className="mr-2 h-4 w-4" />
+              Add Audience
+            </Button>
+          </div>
         </div>
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>

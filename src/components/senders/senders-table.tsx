@@ -15,7 +15,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   SortingState,
   useReactTable,
@@ -25,14 +24,6 @@ import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -437,16 +428,13 @@ export function SendersTable() {
   return (
     <>
       <div className="w-full space-y-4">
-        {/* <div className="flex items-center justify-between"> */}
-          {/* <Input
-            placeholder="Filter emails..."
-            value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("email")?.setFilterValue(event.target.value)
-            }
-            className="max-w-sm"
-          /> */}
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between">
+        <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Senders</h1>
+            <p className="text-muted-foreground">
+            Manage email senders and their configurations
+          </p>
+        </div>
           <Button onClick={() => setIsModalOpen(true)}>
             <IconPlus className="mr-2 h-4 w-4" />
             Add Sender

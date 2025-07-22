@@ -62,6 +62,13 @@ export interface SendEmailRequest {
   variables?: Record<string, string>
 }
 
+export interface ScheduleEmailRequest {
+  campaignId: string
+  emailReceiver: string[]
+  scheduled_time: string
+  variables?: Record<string, string>
+}
+
 class CampaignsApi {
   private baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL!
   private apiKey = process.env.NEXT_PUBLIC_API_KEY!
@@ -147,6 +154,13 @@ class CampaignsApi {
 
   async sendEmail(data: SendEmailRequest): Promise<void> {
     await this.request<void>('/email/send', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
+
+  async scheduleEmail(data: ScheduleEmailRequest): Promise<void> {
+    await this.request<void>('/email/schedule', {
       method: 'POST',
       body: JSON.stringify(data),
     })

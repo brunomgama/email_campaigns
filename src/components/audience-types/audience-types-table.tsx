@@ -296,7 +296,13 @@ export function AudienceTypesTable() {
   return (
     <>
       <div className="w-full space-y-4">
-        <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Audience Types</h1>
+            <p className="text-muted-foreground">
+              Manage audience type categories and classifications
+            </p>
+        </div>
           <Button onClick={() => setIsModalOpen(true)}>
             <IconPlus className="mr-2 h-4 w-4" />
             Add Audience Type
