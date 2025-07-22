@@ -178,12 +178,12 @@ export function Calendar() {
             </CardTitle>
             
             <div className="flex items-center gap-2">
-              <Tabs value={view} onValueChange={(value) => setView(value as "week" | "month")}>
-                <TabsList>
-                  <TabsTrigger value="week">Week</TabsTrigger>
-                  <TabsTrigger value="month">Month</TabsTrigger>
-                </TabsList>
-              </Tabs>
+              {/* <Tabs value={view} onValueChange={(value) => setView(value as "week" | "month")}> */}
+                {/* <TabsList> */}
+                  {/* <TabsTrigger value="week">Week</TabsTrigger> */}
+                  {/* <TabsTrigger value="month">Month</TabsTrigger> */}
+                {/* </TabsList> */}
+              {/* </Tabs> */}
               
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today

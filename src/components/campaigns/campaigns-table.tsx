@@ -95,12 +95,6 @@ export function CampaignsTable() {
     []
   )
 
-  // Handle search input change
-  const handleSearchChange = (value: string) => {
-    setSearchInput(value)
-    debouncedSearch(value)
-  }
-
   // Fetch campaigns function using API service
   const fetchCampaigns = React.useCallback(async (lastKey = "") => {
     try {
@@ -403,14 +397,13 @@ export function CampaignsTable() {
   return (
     <>
       <div className="w-full space-y-4">
-        {/* <div className="flex items-center justify-between">
-          <Input
-            placeholder="Search campaigns..."
-            value={searchInput}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            className="max-w-sm"
-          /> */}
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1>
+              <p className="text-muted-foreground">
+              Manage your email campaigns.
+              </p>
+          </div>
           <Button onClick={() => setIsModalOpen(true)}>
             <IconPlus className="mr-2 h-4 w-4" />
             Add Campaign
